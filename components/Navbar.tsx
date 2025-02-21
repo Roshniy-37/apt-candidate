@@ -1,13 +1,31 @@
+"use client"
 import React from 'react'
+import { SignedIn, SignedOut, SignInButton, UserButton, useUser } from '@clerk/nextjs'
 
 function Navbar() {
+  const { user } = useUser();
+  console.log(user)
   return (
-    <nav className="w-full bg-white shadow-md p-4 flex justify-between items-center">
-      <h1 className="text-2xl font-bold text-gray-800">Skill Sort</h1>
-      <button className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition">
-        Sign Up
-      </button>
-    </nav>
+    <div className='w-full'>
+      <div className='flex justify-between items-center py-2 px-6 bg-white '>
+        <div className="flex items-center space-x-2">
+          <p className='font-bold text-3xl px-3 text-purple-950'>Skill Sort</p>
+        </div>
+        <div className='flex'>
+        <SignedOut>
+          <div className='bg-zinc-950 py-3 px-4 rounded-md'>
+        <SignInButton />
+        </div>
+      </SignedOut>
+      <SignedIn>
+      <div className='flex items-center gap-4 '>
+        <UserButton/>
+        </div>
+      
+      </SignedIn>
+        </div>
+      </div>
+    </div>
   )
 }
 
