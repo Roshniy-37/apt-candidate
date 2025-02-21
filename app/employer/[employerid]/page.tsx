@@ -41,6 +41,7 @@ const jobsData: Job[] = [
 
 export default function EmployerDashboard() {
   const [open, setOpen] = useState(false);
+  const [rankModalOpen,setRankModalOpen] = useState(false)
   const [selectedCandidates, setSelectedCandidates] = useState<Candidate[]>([]);
   const [jobs, setJobs] = useState<Job[]>(jobsData);
   const [createOpen, setCreateOpen] = useState(false);
@@ -55,13 +56,13 @@ export default function EmployerDashboard() {
   const [selectedJobCandidates, setSelectedJobCandidates] = useState<Candidate[]>([]);
   const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(null);
 
-  const handleOpen = (candidates: Candidate[]) => {
-    setSelectedCandidates(candidates);
-    setOpen(true);
-  };
+  // const handleOpen = (candidates: Candidate[]) => {
+  //   setSelectedCandidates(candidates);
+  //   setOpen(true);
+  // };
 
   const handleCreateJob = () => {
-    setJobs([...jobs, newJob]);
+    setJobs([...jobs, { ...newJob, formLink: `https://example.com/${newJob.profile.replace(/\s+/g, '-').toLowerCase()}` }]);
     setCreateOpen(false);
     setNewJob({ profile: "", description: "", formLink: "", submissions: 0, candidates: [] });
   };
@@ -69,6 +70,11 @@ export default function EmployerDashboard() {
   const handleSubmissionsOpen = (candidates: Candidate[]) => {
     setSelectedJobCandidates(candidates);
     setSubmissionsOpen(true);
+  };
+
+  const handleOpenRankModal = (candidates: Candidate[]) => {
+    setSelectedJobCandidates(candidates);
+    setRankModalOpen(true);
   };
 
   return (
@@ -109,7 +115,7 @@ export default function EmployerDashboard() {
                   </button>
                 </td>
                 <td className="p-4">
-                  <button onClick={() => handleOpen(job.candidates)}
+                  <button onClick={() => handleOpenRankModal(job.candidates)}
                     className="bg-blue-500 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded transition duration-200">
                     View Ranks
                   </button>
@@ -150,6 +156,63 @@ export default function EmployerDashboard() {
               className="mt-4 bg-red-500 hover:bg-red-700 text-white font-semibold px-4 py-2 rounded transition duration-200">
               Close
             </button>
+          </div>
+        </div>
+      )}
+
+      {createOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-1/3">
+            <h2 className="text-lg font-bold text-gray-800 mb-4">Create New Job</h2>
+            <input 
+              type="text" 
+              placeholder="Job Profile" 
+              value={newJob.profile} 
+              onChange={(e) => setNewJob({ ...newJob, profile: e.target.value })} 
+              className="w-full mb-2 p-2 border rounded" 
+            />
+            <textarea 
+              placeholder="Job Description" 
+              value={newJob.description} 
+              onChange={(e) => setNewJob({ ...newJob, description: e.target.value })} 
+              className="w-full mb-2 p-2 border rounded"
+            />
+            <div className="flex justify-end mt-4">
+              <button 
+                onClick={() => setCreateOpen(false)}
+                className="bg-gray-500 hover:bg-gray-700 text-white font-semibold px-4 py-2 rounded transition duration-200 mr-2"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={handleCreateJob}
+                className="bg-blue-500 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded transition duration-200"
+              >
+                Submit
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {rankModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-1/3">
+            <h2 className="text-lg font-bold text-gray-800 mb-4">Candidate Rankings</h2>
+            {selectedJobCandidates.map((candidate, index) => (
+              <div key={index} className="mb-2 p-2 border rounded">
+                <p className="text-gray-800 mb-4"><strong>Name:</strong> {candidate.name}</p>
+                <p className="text-gray-800 mb-4"><strong>Rank:</strong> {candidate.rank}</p>
+              </div>
+            ))}
+            <div className="flex justify-end mt-4">
+              <button 
+                onClick={() => setRankModalOpen(false)}
+                className="bg-red-500 hover:bg-red-700 text-white font-semibold px-4 py-2 rounded transition duration-200"
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}
