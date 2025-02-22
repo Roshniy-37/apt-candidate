@@ -1,28 +1,40 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
 model User {
-  id    Int     @id @default(autoincrement())
-  email String  @unique
+  id    Int    @id @default(autoincrement())
+  email String @unique
   name  String?
-  jobs Job[]
+  jobs  Job[]
 }
 
 model Job {
-  id        Int     @id @default(autoincrement())
-    profile     String
-    jobDescription   String
-    location String
-    salary    Int
-    education  Int
-    employer    User    @relation(fields: [employerId], references: [id])
-    employerId  Int
+  id          String        @id @default(uuid())
+  title       String
+  location    String
+  salary      Int         
+  education   String
+  description String
+  userId      Int
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  applications Application[]
+}
+
+model Application {
+  id         String   @id @default(uuid())
+  jobId      String
+  job        Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  name       String
+  experience Int
+  education  String
+  resumeUrl  String
+  rank       Int
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 }
