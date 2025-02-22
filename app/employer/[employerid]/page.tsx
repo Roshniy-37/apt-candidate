@@ -84,18 +84,19 @@ export default function EmployerDashboard() {
                   <a href={`apply/${job.id}`} target="_blank" rel="noopener noreferrer">Apply Here</a>
                 </td>
                 <td className="p-4 text-center font-semibold text-gray-700">
-                 <Link href="/submissions/[jobId]" as={`/submissions/${job.id}`}>
-                  <button 
-                    className="bg-purple-500 hover:bg-purple-700 text-white font-semibold px-4 py-2 rounded transition duration-200">
+                 <Link href={`/submissions/${job.id}`}>
+                  <button className="bg-purple-500 hover:bg-purple-700 text-white font-semibold px-4 py-2 rounded transition duration-200">
                     View Submissions
                   </button>
-                  </Link>
+                </Link>
                 </td>
                 <td className="p-4">
-                  <button 
-                    className="bg-blue-500 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded transition duration-200">
+                <Link href={`/ranking/${job.id}`}>
+                  <button className="bg-blue-500 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded transition duration-200">
                     View Ranks
                   </button>
+                </Link>
+
                 </td>
               </tr>
             ))}

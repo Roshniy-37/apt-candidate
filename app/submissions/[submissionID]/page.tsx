@@ -1,72 +1,72 @@
-"use client";
+'use client'
 
-import { createUser, getSubmissions } from "@/actions/route";
-import { useUser } from "@clerk/nextjs";
-import { useEffect, useState } from "react";
-import { Application } from "@prisma/client";
+import { getSubmissions } from '@/actions/route' 
+import { useParams } from 'next/navigation' 
+import React, { useEffect, useState } from 'react'
 
-export default function JobSubmissions({ jobId }: { jobId: string }) {
-  const [search, setSearch] = useState("");
-  const [submissions, setSubmissions] = useState<Application[]>([]);
-  const { user } = useUser();
-  const [filteredApps, setFilteredApps] = useState<Application[]>([]);
+type Submission = {
+  id: string;
+  jobId: string;
+  name: string;
+  experience: number;
+  education: string;
+  resumeUrl: string;
+  rank: number;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+function SubmissionsPage() {
+  const params = useParams(); 
+  const jobId = Array.isArray(params.jobId) ? params.jobId[0] : params.jobId; 
+
+  const [submissions, setSubmissions] = useState<Submission[]>([]); 
 
   useEffect(() => {
-    if (!user || !jobId) return;
+    if (!jobId) return;
 
-    const email = user.emailAddresses[0]?.emailAddress || "";
-    const name = user.fullName || user.username || "NA";
-
-    async function fetchData() {
-      await createUser({ email, name });
-      const res = await getSubmissions(jobId);
+    async function fetchSubmissions() {
+      const res: Submission[] = await getSubmissions(jobId as string); 
       if (res) {
         setSubmissions(res);
-        setFilteredApps(res);
       }
     }
 
-    fetchData();
-  }, [user, jobId]); // jobId included in dependencies
-
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearch(e.target.value);
-    setFilteredApps(
-      submissions.filter((app) =>
-        app.name.toLowerCase().includes(e.target.value.toLowerCase())
-      )
-    );
-  };
+    fetchSubmissions();
+  }, [jobId]);
 
   return (
-    <div className="p-6 w-full max-w-3xl mx-auto mt-6 bg-white rounded-lg shadow-lg">
-      <h2 className="text-2xl font-bold mb-4 text-gray-800">Job Applications</h2>
-      <input
-        type="text"
-        placeholder="Search by applicant name..."
-        value={search}
-        onChange={handleSearch}
-        className="mb-4 p-3 border border-gray-300 rounded w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
-      />
-      <div>
-        {filteredApps.length > 0 ? (
-          filteredApps.map((app) => (
-            <div key={app.id} className="border-b py-3">
-              <div><strong>Name:</strong> {app.name}</div>
-              <div><strong>Education:</strong> {app.education}</div>
-              <div><strong>Experience:</strong> {app.experience}</div>
-              <div>
-                <strong>Resume:</strong>{" "}
-                <a href={app.resumeUrl} target="_blank" rel="noopener noreferrer" className="text-blue-500 underline">
-                  View Resume
-                </a>
-              </div>
-            </div>
-          ))
-        ) : (
-          <p className="text-gray-600">No applications found.</p>
-        )}
-      </div>
+    <div className='p-6 bg-gray-900 min-h-screen text-white'>
+      <h1 className='text-2xl font-bold mb-4'>Submissions for Job ID: {jobId}</h1>
+
+      {submissions.length > 0 ? (
+        <table className="w-full bg-gray-800 rounded-lg">
+          <thead className="bg-gray-700">
+            <tr>
+              <th className="p-4 text-left">Name</th>
+              <th className="p-4 text-left">Experience</th>
+              <th className="p-4 text-left">Education</th>
+              <th className="p-4 text-left">Resume</th>
+            </tr>
+          </thead>
+          <tbody>
+            {submissions.map((submission) => (
+              <tr key={submission.id} className="border-t border-gray-600">
+                <td className="p-4">{submission.name}</td>
+                <td className="p-4">{submission.experience} years</td>
+                <td className="p-4">{submission.education}</td>
+                <td className="p-4">
+                  <a href={submission.resumeUrl} target="_blank" rel="noopener noreferrer" className="text-blue-400 underline">View Resume</a>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      ) : (
+        <p className="text-gray-400">No submissions found.</p>
+      )}
     </div>
   );
 }
+
+export default SubmissionsPage;

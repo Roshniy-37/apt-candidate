@@ -1,66 +1,20 @@
 import { NextResponse } from "next/server";
-import OpenAI from "openai";
-import dotenv from "dotenv";
-
-dotenv.config();
-
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY, 
-});
+import { getSubmissions } from "@/actions/route";
+import { rankCandidates } from "@/app/api/rankCandidates/ml";
 
 export async function POST(req: Request) {
   try {
-    const { jobDescription, candidates } = await req.json();
+    const { jobId } = await req.json();
+    if (!jobId) return NextResponse.json({ error: "Job ID is required" }, { status: 400 });
 
-    if (!jobDescription || !Array.isArray(candidates) || candidates.length === 0) {
-      return NextResponse.json({ error: "Invalid job description or candidates list" }, { status: 400 });
-    }
+    const applications = await getSubmissions(jobId) || [];  // ✅ Ensure it's an array
+    if (applications.length === 0) return NextResponse.json({ error: "No applications found" }, { status: 404 });
 
-    const prompt = `
-      You are an AI hiring assistant. Your task is to rank candidates for a job.
+    const rankedCandidates = await rankCandidates(applications);
 
-      **Job Description:**
-      ${jobDescription}
-
-      **Candidates:**
-      ${candidates
-        .map(
-          (c, index) =>
-            `${index + 1}. Name: ${c.name}, Experience: ${c.experience} years, Education: ${c.education}`
-        )
-        .join("\n")}
-
-      **Ranking Criteria:**
-      - More experience = Higher rank.
-      - Relevant education = Higher rank.
-      - Better match with job description = Higher rank.
-
-      **Output Format (JSON):**
-      {
-        "rankedCandidates": [
-          { "name": "Candidate Name", "score": 9.2 },
-          { "name": "Another Candidate", "score": 8.7 }
-        ]
-      }
-    `;
-
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o-mini", 
-      messages: [{ role: "system", content: "You are a professional hiring assistant." }, { role: "user", content: prompt }],
-      temperature: 0.3, 
-    });
-
-    let rankedCandidates = [];
-    
-    try {
-      rankedCandidates = JSON.parse(response.choices[0].message.content || "{}").rankedCandidates || [];
-    } catch (parseError) {
-      console.error("Error parsing LLM response:", parseError);
-    }
-
-    return NextResponse.json({ success: true, rankedCandidates });
+    return NextResponse.json({ rankedCandidates });
   } catch (error) {
-    console.error("LLM Error:", error);
-    return NextResponse.json({ error: "Error processing candidates" }, { status: 500 });
+    console.error("Error ranking candidates:", error);
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }

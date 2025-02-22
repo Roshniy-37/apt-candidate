@@ -77,18 +77,6 @@ export async function submitApplication(jobId: string, name: string, experience:
 }
 
 export async function getSubmissions(jobId: string) {
-    const res = await prisma.application.findFirst({
-      where: {
-        jobId,
-      },
-    });
-    if (!res) {
-      return;
-    }
-    return await prisma.application.findMany({
-      where: {
-        jobId: res.id,
-      },
-    });
+    const data = await prisma.application.findMany({ where: { jobId } });
+    return data || [];  
   }
-  
